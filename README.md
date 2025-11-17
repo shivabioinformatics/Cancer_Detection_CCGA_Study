@@ -205,7 +205,7 @@ Tumor Tissue (subset only)
 - **Note:** Excludes clinical-only classifier (#8)
 
 <p align="center">
-  <img src="figure2_roc_curves.png" alt="Performance Graph " width="700" />
+  <img src="Figure2_Cancer_Signal_Detection/figure2_roc_curves.png" alt="Performance Graph " width="700" />
 </p>
 
 ---
