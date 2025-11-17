@@ -204,6 +204,10 @@ Tumor Tissue (subset only)
 - **Purpose:** Test whether multi-assay integration outperforms single assays
 - **Note:** Excludes clinical-only classifier (#8)
 
+<p align="center">
+  <img src="figure2_roc_curves.png" alt="Performance Graph " width="700" />
+</p>
+
 ---
 
 **Methodology:**
