@@ -1,0 +1,5 @@
+variable_name	variable_label
+hgvsp_canonical	HGVS protein nomenclature, e.g., DNMT3A:p.Met852Val
+snv	Single nucleotide variant (chrom_position_ref_alt), e.g., chr2_25458619_T_C
+is_nonsyn	TRUE if non-synonymous variant, FALSE otherwise.
+n_pts_w_snv	Number of participants with non-synomymous mutation
