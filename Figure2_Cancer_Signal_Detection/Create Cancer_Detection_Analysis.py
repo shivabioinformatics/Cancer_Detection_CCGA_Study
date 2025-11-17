@@ -1,3 +1,4 @@
+# Importing necessary packages
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,16 +8,16 @@ from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
 
-# Set plotting style
+# Setting plotting style
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 10
 
 #============================================================================
-# STEP 1: LOAD THE DATA
+# Loading the Data
 #============================================================================
 
-# Load classifier scores (this contains predictions from all 10 classifiers)
+# Loading classifier scores (this contains predictions from all 10 classifiers)
 print("Loading data...")
 scores_df = pd.read_csv('data/scores_cnc.tsv', sep='\t')
 clinical_df = pd.read_csv('data/clinical.tsv', sep='\t')
@@ -26,7 +27,7 @@ print(f"✓ Loaded {len(scores_df):,} predictions across all classifiers")
 print(f"✓ Loaded {len(clinical_df):,} participants")
 print()
 
-# Check unique classifiers
+# Checking unique classifiers
 classifiers = scores_df['classifier_name'].unique()
 print(f"10 Classifiers in the study:")
 for i, clf in enumerate(classifiers, 1):
@@ -35,18 +36,18 @@ print()
 
 
 #============================================================================
-# STEP 2: REPRODUCE TABLE 3 - VALIDATION SET RESULTS
+# REPRODUCING TABLE 3 
 #============================================================================
 
-# Filter to validation set only
+# Filtering to validation set only
 validation_df = scores_df[scores_df['train_or_valid'] == 'valid'].copy()
 
 #============================================================================
-#- **Training set (1,414 people):** Used to teach the classifiers how to spot cancer
-#- **Validation set (847 people):** Used to test if it actually works on NEW people it's never seen
+#- Training set (1,414 people): It is used to teach the classifiers how to spot cancer
+#- Validation set (847 people): It is used to test if it actually works on NEW people it's never seen
 #============================================================================
 
-# Count samples by cancer status
+# Counting samples by cancer status
 n_cancer = (validation_df.groupby('classifier_name')['cnc_label_actual']
             .apply(lambda x: (x == 'cancer').sum())
             .iloc[0])
@@ -60,10 +61,10 @@ print(f"  Non-cancer samples: {n_noncancer:4d}")
 print(f"  Total:              {n_cancer + n_noncancer:4d}")
 print()
 
-# Initialize results table
+# Initializing results table
 table3_results = []
 
-# Order classifiers as in paper (Table 3)
+# Ordering classifiers as in paper (Table 3)
 classifier_order = [
     'WG methylation',
     'SNV',
@@ -77,18 +78,18 @@ classifier_order = [
     'Clinical data'
 ]
 
-# Calculate metrics for each classifier
+# Calculating metrics for each classifier
 for clf_name in classifier_order:
     clf_data = validation_df[validation_df['classifier_name'] == clf_name].copy()
 
-    # Get actual and predicted labels
+    # Geting actual and predicted labels
     y_true = (clf_data['cnc_label_actual'] == 'cancer').astype(int)
     y_pred = (clf_data['cnc_label_predict'] == 'cancer').astype(int)
 
-    # Calculate confusion matrix
+    # Calculating confusion matrix
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
-    # Calculate metrics
+    # Calculating metrics
     sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
 
@@ -106,7 +107,7 @@ for clf_name in classifier_order:
     else:
         ci_low = ci_high = 0
 
-    # Store results
+    # Storing results
     table3_results.append({
         'Classifier': clf_name,
         'TP': tp,
@@ -124,10 +125,10 @@ for clf_name in classifier_order:
         'TP/Total': f"{tp}/{tp+fn}"
     })
 
-# Create DataFrame
+# Creating DataFrame
 table3_df = pd.DataFrame(table3_results)
 
-# Display formatted table (matching paper's Table 3)
+# Displaying formatted table (matching paper's Table 3)
 print("VALIDATION SET RESULTS (matching Table 3 in paper)")
 print("-" * 85)
 print(f"{'Classifier':<25} {'Sensitivity':<15} {'95% CI':<20} {'TP/Total':<12}")
@@ -141,7 +142,7 @@ print(f"Specificity target: 98.0%")
 print(f"Observed specificity: {table3_df.iloc[0]['Specificity %']}")
 print()
 
-# Highlight key findings
+# Highlighting key findings
 print("KEY FINDINGS:")
 wg_meth = table3_df[table3_df['Classifier'] == 'WG methylation'].iloc[0]
 snv_wbc = table3_df[table3_df['Classifier'] == 'SNV-WBC'].iloc[0]
@@ -156,7 +157,7 @@ print("  → SNV required WBC sequencing to match methylation performance")
 print()
 
 #============================================================================
-# STEP 3: STATISTICAL COMPARISON (McNEMAR'S TEST)
+#  STATISTICAL COMPARISON (McNEMAR'S TEST)
 #============================================================================
 
 #============================================================================
@@ -177,7 +178,7 @@ def mcnemar_test(clf1_name, clf2_name, data):
     clf1 = data[data['classifier_name'] == clf1_name].copy()
     clf2 = data[data['classifier_name'] == clf2_name].copy()
 
-    # Merge on participant_id to ensure paired comparison
+    # Merging on participant_id to ensure paired comparison
     merged = pd.merge(
         clf1[['participant_id', 'cnc_label_actual', 'cnc_label_predict']],
         clf2[['participant_id', 'cnc_label_actual', 'cnc_label_predict']],
@@ -215,7 +216,7 @@ def mcnemar_test(clf1_name, clf2_name, data):
 
     return statistic, p_value, contingency, clf1_only, clf2_only
 
-# Compare WG methylation vs all others
+# Comparing WG methylation vs all others
 print("Comparing WG Methylation (best) vs Other Classifiers:")
 print("-" * 70)
 
@@ -242,11 +243,11 @@ print("  SNV-WBC matches WG methylation (p > 0.05) - no significant difference")
 print()
 
 #============================================================================
-# STEP 4: REPRODUCE FIGURE 2 - ROC CURVES
+# REPRODUCING FIGURE 2 - ROC CURVES
 # ROC = Receiver Operating Characteristic (fancy name for "performance graph")
 #============================================================================
 
-# Create figure with subplots
+# Creating figure with subplots
 fig, axes = plt.subplots(1, 2, figsize=(16, 7))
 
 # Color scheme (highlight WG methylation in orange)
@@ -277,7 +278,7 @@ legend_order = [
     'Clinical data'
 ]
 
-# Calculate ROC curves for each dataset
+# Calculating ROC curves for each dataset
 for idx, (dataset_name, dataset_filter) in enumerate([('train', 'train'), ('valid', 'valid')]):
     ax = axes[idx]
 
